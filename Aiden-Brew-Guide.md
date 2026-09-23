@@ -1,10 +1,10 @@
-# Aiden Brew — App guide and technical overview
+# Aiden Instant Coffee — App guide and technical overview
 
 **Version 0.4 · 23 September 2026**
 
 ## What the app does
 
-Aiden Brew is a small native Android app for starting a Fellow Aiden coffee
+Aiden Instant Coffee is a small native Android app for starting a Fellow Aiden coffee
 brewer from a phone. Its main action, **Start instant brew**, uses the profile
 and water quantity already saved for Instant Brew on the brewer. A compact
 home-screen widget performs the same action and opens the app to show progress.
@@ -22,7 +22,7 @@ recovered from Fellow's Android app during development.
 
 ## Using the app
 
-1. Open **Aiden Brew** and sign in with the Fellow account that owns the brewer.
+1. Open **Aiden Instant Coffee** and sign in with the Fellow account that owns the brewer.
 2. If the account has one Aiden, it is selected automatically. For multiple
    brewers, use **Choose brewer**.
 3. Prepare the brewer with water, a filter, coffee and the appropriate basket.
@@ -40,9 +40,9 @@ subsequent reported progress; check the brewer if the result is unclear.
 
 ## Home-screen widget
 
-Add **Aiden Brew** through the phone launcher's Widgets menu. The widget requests
+Add **Aiden Instant Coffee** through the phone launcher's Widgets menu. The widget requests
 a single 1×1 cell, although the launcher controls its actual dimensions. It
-contains only **Start instant brew** and has no live status display.
+shows the coffee-cup icon with no visible text or live status display.
 
 Tapping it opens the app and automatically requests a brew. If sign-in is
 missing or expired, the app asks you to sign in instead. Completing sign-in does
@@ -154,7 +154,7 @@ a brewer display label and the most recent start-attempt timestamp.
 
 Requests use HTTPS; cleartext traffic and automatic Android app backup are
 disabled. The app does not intentionally log credentials or cloud responses.
-Its screens use Android's secure-window flag to prevent normal screenshots.
+Users can take normal Android screenshots of the app.
 
 The widget invokes a non-exported activity through an immutable PendingIntent.
 Other apps cannot directly launch that private brew activity. Opening the

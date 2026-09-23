@@ -28,9 +28,9 @@ public class MainActivity extends Activity {
     private void base(){
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(Color.rgb(238,234,226));
         layout=new LinearLayout(this);layout.setOrientation(LinearLayout.VERTICAL);layout.setPadding(dp(26),dp(32),dp(26),dp(28));scroll.addView(layout);setContentView(scroll);
-        text("AIDEN / COFFEE",13);text("Fellow Aiden Instant Brew",30);
+        text("AIDEN / COFFEE",13);text("Aiden Instant Coffee",30);
     }
-    @Override public void onCreate(Bundle saved){super.onCreate(saved);getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
+    @Override public void onCreate(Bundle saved){super.onCreate(saved);
         // Do not re-execute the widget action after rotation or process recreation.
         boolean requested=saved==null&&getClass()==WidgetActivity.class&&"com.andulf.aiden.WIDGET_BREW".equals(getIntent().getAction());
         getIntent().setAction(null);

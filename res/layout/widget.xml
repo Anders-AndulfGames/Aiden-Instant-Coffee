@@ -1,1 +1,11 @@
-<Button xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_brew" android:layout_width="match_parent" android:layout_height="match_parent" android:minWidth="0dp" android:minHeight="0dp" android:padding="4dp" android:background="@drawable/widget_bg" android:text="" android:textSize="12sp" android:textColor="#294B37" android:textAllCaps="false" android:gravity="center" android:maxLines="3" android:contentDescription="Start instant brew" />
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_brew"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minWidth="0dp"
+    android:minHeight="0dp"
+    android:padding="8dp"
+    android:background="@drawable/widget_bg"
+    android:src="@drawable/icon"
+    android:scaleType="fitCenter"
+    android:contentDescription="Start instant brew" />

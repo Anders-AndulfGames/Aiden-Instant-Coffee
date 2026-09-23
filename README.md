@@ -1,4 +1,4 @@
-# Aiden Brew for Android
+# Aiden Instant Coffee for Android
 
 Small native Java app and home-screen widget for the user's Fellow Aiden.
 Android 8 or newer. No PC server, USB, Bluetooth, web view, or third-party
@@ -11,7 +11,7 @@ Sadly, the most obvious feature, "instant brew", does not exist in the original 
 
 ## Use
 
-1. Open **Aiden Brew** and sign in with the Fellow account that owns the brewer.
+1. Open **Aiden Instant Coffee** and sign in with the Fellow account that owns the brewer.
 2. If you own multiple Aidens, use **Choose brewer**.
 3. Prepare the brewer with water, filter, coffee and the appropriate basket.
 4. Press **Start instant brew**, or add the home-screen widget from your launcher’s Widgets menu.
@@ -36,7 +36,7 @@ encrypted with an AES-GCM key held by Android Keystore. Automatic app backup is
 disabled, and API requests use HTTPS. Expired sessions require signing in again;
 no unattended password storage or token-refresh protocol is implemented.
 The app does not log credentials or cloud responses. Sign out clears the saved
-session and selected brewer. Android screenshots of the app are disabled.
+session and selected brewer. Android screenshots of the app are allowed.
 
 ## Build
 
