@@ -31,12 +31,18 @@ repeated start attempts across the app and widget.
 
 ## Sign-in and privacy
 
-The password is used only for sign-in and is not saved. The access token is
-encrypted with an AES-GCM key held by Android Keystore. Automatic app backup is
-disabled, and API requests use HTTPS. Expired sessions require signing in again;
-no unattended password storage or token-refresh protocol is implemented.
-The app does not log credentials or cloud responses. Sign out clears the saved
-session and selected brewer. Android screenshots of the app are allowed.
+The email, password and access token are encrypted with AES-GCM using a key
+held by Android Keystore and saved in the app's private storage. Automatic app
+backup is disabled. API requests use HTTPS, and credentials and responses are
+not logged. If a status read finds an expired session, the app signs in with
+the saved credentials and retries that read once. Brew commands are never
+retried. Rejected credentials return to sign-in with the saved fields filled in.
+Sign out removes the saved credentials, session and selected brewer.
+Android screenshots of the app are allowed.
+
+After upgrading from 0.5 or older, enter your email and password once to save
+them. Existing session tokens remain supported, but older versions did not
+save the password, so it cannot be recovered from an existing session.
 
 ## Build
 
@@ -64,3 +70,15 @@ lag or contain stale fields; check the brewer if a request is uncertain.
 
 Widget implementation follows Android's native AppWidgetProvider/PendingIntent
 pattern: https://developer.android.com/develop/ui/views/appwidgets/advanced
+## Version 0.6 verification
+
+All 22 brewing-policy checks and 21 on-device authentication checks passed.
+The authentication checks use isolated preferences, dummy credentials and
+simulated HTTPS responses; no real login or brew request is sent. They cover
+encrypted storage, token renewal, rejected credentials, sign-out cleanup and
+preventing retries of brew commands. Live Fellow reauthentication remains to
+be verified with the owner's account.
+
+To repeat the Android authentication checks after building, connect a phone
+and run `tests/test-session.ps1 -Serial <adb-device-serial>`. This installs the
+app and a temporary test package, then removes the test package when finished.

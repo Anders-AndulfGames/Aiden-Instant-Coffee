@@ -19,7 +19,7 @@ public class MainActivity extends Activity {
     private long lastStatusAt=0, observedBrewStart=-1;
     private final Runnable tick=new Runnable(){public void run(){updateCountdown();if(visible)main.postDelayed(this,1000);}};
     private Button brew;
-    private boolean working=false,visible=false,starting=false,pendingWidgetStart=false;
+    private boolean working=false,visible=false,starting=false,pendingWidgetStart=false,loginScreen=false;
     private JSONObject device;
     private final Runnable poll=()->refresh();
     private int dp(int n){return (int)(getResources().getDisplayMetrics().density*n);}
@@ -34,30 +34,33 @@ public class MainActivity extends Activity {
         // Do not re-execute the widget action after rotation or process recreation.
         boolean requested=saved==null&&getClass()==WidgetActivity.class&&"com.andulf.aiden.WIDGET_BREW".equals(getIntent().getAction());
         getIntent().setAction(null);
-        if(!Session.prefs(this).contains("session")){showLogin(requested?"Sign in, then tap Brew when ready.":"");}
+        if(!Session.available(this)){showLogin(requested?"Sign in, then tap Brew when ready.":"");}
         else {showBrewer();if(requested)requestWidgetStart();}
     }
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);boolean requested=getClass()==WidgetActivity.class&&"com.andulf.aiden.WIDGET_BREW".equals(intent.getAction());intent.setAction(null);if(requested)requestWidgetStart();}
     private void requestWidgetStart(){
         if(starting)return;
-        if(!Session.prefs(this).contains("session")){pendingWidgetStart=false;showLogin("Sign in, then tap Start instant brew when ready.");return;}
+        if(!Session.available(this)){pendingWidgetStart=false;showLogin("Sign in, then tap Start instant brew when ready.");return;}
         if(working){pendingWidgetStart=true;return;}
+        if(loginScreen)showBrewer();
         pendingWidgetStart=false;startBrew();
     }
-    @Override protected void onResume(){super.onResume();visible=true;main.removeCallbacks(tick);main.post(tick);if(Session.prefs(this).contains("session")&&!working)refresh();}
+    @Override protected void onResume(){super.onResume();visible=true;main.removeCallbacks(tick);main.post(tick);if(!loginScreen&&Session.available(this)&&!working)refresh();}
     @Override protected void onPause(){visible=false;main.removeCallbacks(poll);main.removeCallbacks(tick);super.onPause();}
     private void showLogin(String message){
-        main.removeCallbacks(poll);device=null;countdown=null;base();text("Connect your Fellow account",20);
+        loginScreen=true;pendingWidgetStart=false;main.removeCallbacks(poll);device=null;countdown=null;base();text("Connect your Fellow account",20);
         EditText email=new EditText(this);email.setHint("Email");email.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);layout.addView(email);
         EditText password=new EditText(this);password.setHint("Password");password.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);layout.addView(password);
+        try { String[] saved=Session.credentials(this);if(saved!=null){email.setText(saved[0]);password.setText(saved[1]);} }
+        catch(Session.LoginRequired ex){message=ex.getMessage();}
         Button sign=button("Sign in",()->{});status=text(message,15);
-        text("Your password is not saved. Your session is encrypted using Android Keystore. The app connects directly to Fellow.",13);
-        sign.setOnClickListener(v->{if(working)return;String e=email.getText().toString(),p=password.getText().toString();if(e.trim().isEmpty()||p.isEmpty()){status.setText("Enter your email and password.");return;}password.setText("");working=true;sign.setEnabled(false);status.setText("Signing in...");
+        text("Your email, password and session are saved encrypted on this phone using Android Keystore. Sign out removes them.",13);
+        sign.setOnClickListener(v->{if(working)return;String e=email.getText().toString(),p=password.getText().toString();if(e.trim().isEmpty()||p.isEmpty()){status.setText("Enter your email and password.");return;}working=true;sign.setEnabled(false);status.setText("Signing in...");
             IO.execute(()->{try{Fellow.login(getApplicationContext(),e,p);main.post(()->{working=false;if(isDestroyed())return;showBrewer();refresh();BrewWidget.updateAll(this);});}catch(Exception ex){main.post(()->{working=false;if(isDestroyed())return;sign.setEnabled(true);status.setText(message(ex));});}});
         });
     }
     private void showBrewer(){
-        base();text("Prepare water, a filter and coffee before starting.",16);recipe=text("Instant Brew · loading saved quantity...",22);
+        loginScreen=false;base();text("Prepare water, a filter and coffee before starting.",16);recipe=text("Instant Brew · loading saved quantity...",22);
         stage=text("Checking brewer...",20);countdown=text("",30);countdown.setVisibility(View.GONE);lights=new LinearLayout(this);lights.setOrientation(LinearLayout.VERTICAL);layout.addView(lights);
         brew=button("Start instant brew",()->startBrew());brew.setEnabled(false);status=text("",15);
         button("Choose brewer",()->chooseBrewer());
@@ -66,8 +69,8 @@ public class MainActivity extends Activity {
     }
     private String message(Exception e){return e instanceof java.net.SocketTimeoutException?"Connection timed out. Check the brewer before trying again; no command was retried.":e instanceof java.io.IOException?e.getMessage():e instanceof Session.LoginRequired?e.getMessage():"Unable to complete the request. Check your connection and try again.";}
     private void failed(Exception e){if(isDestroyed())return;lastStatusAt=0;updateCountdown();if(e instanceof Session.LoginRequired){BrewWidget.updateAll(this);showLogin(message(e));}else{status.setText(message(e));stage.setText("Status unavailable");if(lights!=null)lights.removeAllViews();if(brew!=null)brew.setEnabled(false);}}
-    private void schedule(){main.removeCallbacks(poll);if(visible&&pendingWidgetStart&&!working){requestWidgetStart();return;}if(visible&&Session.prefs(this).contains("session"))main.postDelayed(poll,5000);}
-    private void refresh(){if(!Session.prefs(this).contains("session"))return;if(working){schedule();return;}working=true;
+    private void schedule(){main.removeCallbacks(poll);if(visible&&pendingWidgetStart&&!working){requestWidgetStart();return;}if(visible&&!loginScreen&&Session.available(this))main.postDelayed(poll,5000);}
+    private void refresh(){if(!Session.available(this))return;if(working){schedule();return;}working=true;
         IO.execute(()->{try{JSONObject d=Fellow.selected(getApplicationContext(),Fellow.devices(getApplicationContext()));main.post(()->{working=false;if(isDestroyed())return;render(d);schedule();});}catch(Exception ex){main.post(()->{starting=false;working=false;failed(ex);schedule();});}});
     }
     private void render(JSONObject d){

@@ -1,6 +1,6 @@
 # Aiden Instant Coffee — App guide and technical overview
 
-**Version 0.4 · 23 September 2026**
+**Version 0.6 · 23 September 2026**
 
 ## What the app does
 
@@ -45,7 +45,7 @@ a single 1×1 cell, although the launcher controls its actual dimensions. It
 shows the coffee-cup icon with no visible text or live status display.
 
 Tapping it opens the app and automatically requests a brew. If sign-in is
-missing or expired, the app asks you to sign in instead. Completing sign-in does
+missing or rejected, the app asks you to sign in instead. Expired sessions are renewed using saved credentials when available. Completing sign-in does
 not automatically resume the interrupted start; tap Start instant brew when
 ready.
 
@@ -147,10 +147,7 @@ the app is visible.
 
 ## Sign-in and stored data
 
-The password is used for sign-in and is not saved. The returned access token is
-encrypted with AES-GCM using a key held by Android Keystore. The encrypted token
-is stored in the app's private preferences, alongside the selected brewer ID,
-a brewer display label and the most recent start-attempt timestamp.
+The email, password and access token are encrypted with AES-GCM using a key held by Android Keystore and saved in private app preferences. Brewer selection and the latest start-attempt timestamp are stored alongside them.
 
 Requests use HTTPS; cleartext traffic and automatic Android app backup are
 disabled. The app does not intentionally log credentials or cloud responses.
@@ -160,9 +157,7 @@ The widget invokes a non-exported activity through an immutable PendingIntent.
 Other apps cannot directly launch that private brew activity. Opening the
 ordinary launcher activity does not automatically start brewing.
 
-Signing out removes the saved session and brewer selection. An authentication
-rejection clears the session and returns to sign-in. Automatic token renewal is
-not implemented, so an expired session requires signing in again.
+Signing out removes the saved credentials, session and brewer selection. Expired sessions are renewed using the saved login details, followed by one retry of the status read. Brew commands are never retried. If the login is rejected, the saved fields are filled in so they can be corrected. Users upgrading from 0.5 or earlier must enter their login once because those versions never stored the password.
 
 ## Implementation and maintenance
 
@@ -176,7 +171,7 @@ It has no third-party runtime libraries and no Python server dependency.
 | `WidgetActivity.java` | Private entry point for widget-triggered starts |
 | `BrewWidget.java` | Compact widget and its launch action |
 | `Fellow.java` | HTTPS requests, device selection and start-request validation |
-| `Session.java` | Encrypted token storage and sign-out |
+| `Session.java` | Encrypted credentials and token storage, and sign-out |
 | `BrewPolicy.java` | State interpretation and countdown calculation |
 | `tests/PolicyCheck.java` | Fourteen deterministic state and countdown checks |
 | `build.ps1` | Local compilation, APK assembly, alignment and signing |
@@ -202,7 +197,7 @@ changes may require updates.
 
 | Symptom | What to do |
 | --- | --- |
-| Sign-in appears again | The session expired or was rejected. Sign in again. |
+| Sign-in appears again | No saved credentials are available, or Fellow rejected them. Enter or correct your login. |
 | Brewer offline | Check the brewer's internet connection and Fellow account. |
 | Start is disabled or an attempt is blocked | Check whether a brew is already running or a start was attempted within the last minute. |
 | Request timed out | Check the machine before trying again; the request was not retried automatically. |
